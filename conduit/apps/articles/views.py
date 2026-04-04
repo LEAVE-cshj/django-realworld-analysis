@@ -41,7 +41,7 @@ class ArticleViewSet(mixins.CreateModelMixin,
 
         return queryset
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer_context = {
             'author': request.user.profile,
             'request': request
@@ -49,14 +49,14 @@ class ArticleViewSet(mixins.CreateModelMixin,
         serializer_data = request.data.get('article', {})
 
         serializer = self.serializer_class(
-        data=serializer_data, context=serializer_context
+            data=serializer_data, context=serializer_context
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def list(self, request):
+    def list(self, request, *args, **kwargs):
         serializer_context = {'request': request}
         page = self.paginate_queryset(self.get_queryset())
 
@@ -68,8 +68,9 @@ class ArticleViewSet(mixins.CreateModelMixin,
 
         return self.get_paginated_response(serializer.data)
 
-    def retrieve(self, request, slug):
+    def retrieve(self, request, *args, **kwargs):
         serializer_context = {'request': request}
+        slug = kwargs.get('slug')
 
         try:
             serializer_instance = self.queryset.get(slug=slug)
@@ -82,7 +83,6 @@ class ArticleViewSet(mixins.CreateModelMixin,
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
     def update(self, request, slug):
         serializer_context = {'request': request}
@@ -125,8 +125,9 @@ class CommentsListCreateAPIView(generics.ListCreateAPIView):
 
         return queryset.filter(**filters)
 
-    def create(self, request, article_slug=None):
+    def create(self, request, *args, **kwargs):
         data = request.data.get('comment', {})
+        article_slug = kwargs.get('article_slug')
         context = {'author': request.user.profile}
 
         try:
@@ -146,7 +147,8 @@ class CommentsDestroyAPIView(generics.DestroyAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Comment.objects.all()
 
-    def destroy(self, request, article_slug=None, comment_pk=None):
+    def destroy(self, request, *args, **kwargs):
+        comment_pk = kwargs.get('comment_pk')
         try:
             comment = Comment.objects.get(pk=comment_pk)
         except Comment.DoesNotExist:
@@ -199,7 +201,7 @@ class TagListAPIView(generics.ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = TagSerializer
 
-    def list(self, request):
+    def list(self, request, *args, **kwargs):
         serializer_data = self.get_queryset()
         serializer = self.serializer_class(serializer_data, many=True)
 
