@@ -32,11 +32,14 @@ def _handle_generic_error(exc, context, response):
 
     return response
 
+def _get_model_verbose_name(model):
+    return model._meta.verbose_name
+
 def _handle_not_found_error(exc, context, response):
     view = context.get('view', None)
 
     if view and hasattr(view, 'queryset') and view.queryset is not None:
-        error_key = view.queryset.model._meta.verbose_name
+        error_key = _get_model_verbose_name(view.queryset.model)
 
         response.data = {
             'errors': {
